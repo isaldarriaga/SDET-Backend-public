@@ -26,6 +26,23 @@ function args(logger) {
   program.parse(process.argv);
   args = program.opts();
 
+  // transform strings received as args into numbers
+  if (typeof (args.numPhotos) === "string") {
+    args.numPhotos = parseInt(args.numPhotos);
+    logger.debug({
+      msg: "numPhotos has been received as argument, did cast to number",
+      numPhotos: args.numPhotos
+    });
+  }
+
+  if (typeof (args.martianSol) === "string") {
+    args.martianSol = parseInt(args.martianSol);
+    logger.debug({
+      msg: "martianSol has been received as argument, did cast to number",
+      martianSol: args.martianSol
+    });
+  }
+
   // print the CLI arguments received
   logger.debug({
     msg: 'arguments received via CLI (or defaulted ones)',
