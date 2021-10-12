@@ -11,45 +11,64 @@ async function validatePhotos(_logger) {
 
  const args = cli.args(_logger);
 
- var marsPhotos, earthPhotos, manifest, earthDate;
+ var validations = { rover: args.roverName };
 
  if (args.async) {
 
   // earth's date is needed to be able to get mars and earth photos concurrently
-  earthDate = earth.calculateEarthDate(args.roverName, args.martianSol, _logger);
+  const earthDate = earth.calculateEarthDate(args.roverName, args.martianSol, _logger);
 
-  _logger.debug({ msg: 'earth date (CALCULATED):', earthDate: earthDate });
+  _logger.debug({
+   filename: __filename,
+   function: arguments.callee.name,
+   msg: 'earth date (CALCULATED):',
+   earthDate: earthDate
+  });
 
-  [marsPhotos, earthPhotos, manifest] = await Promise.all([
+  let [manifest, marsPhotos, earthPhotos] = await Promise.all([
+   await mission.getManifest(args, _logger),
    await mars.retrievePhotos(args, _logger),
-   await earth.retrievePhotos(args, earthDate, _logger),
-   await mission.getManifest(args, _logger)
+   await earth.retrievePhotos(args, earthDate, _logger)
   ]);
 
- } else {
-  // get mars photos, earth photos and manifest sequentially
-  marsPhotos = await mars.retrievePhotos(args, _logger);
+  console.log('manifest', manifest);
 
-  // get earth date from API
-  earthDate = marsPhotos[0].earth_date;
+  // process.exit(0);
 
-  _logger.debug({ msg: 'earth date (FROM API):', earthDate: earthDate });
-
-  earthPhotos = await earth.retrievePhotos(args, earthDate, _logger);
-  manifest = await mission.getManifest(args, _logger);
- }
-
- var validations = { rover: args.roverName };
+  _logger.trace({
+   filename: __filename,
+   function: arguments.callee.name,
+   msg: "GOT marsPhotos, earthPhotos, manifest",
+   manifest: JSON.stringify(manifest)
+   // marsPhotos: marsPhotos,
+   // earthPhotos: earthPhotos,
+  });
 
 
- if (args.async) {
   // get sol and camera validations concurrently
   // because they don't depend on each other
   [validations.sol, validations.cameras] = await Promise.all([
    validate.compareSolPhotos(marsPhotos, earthPhotos, _logger),
    await validate.compareCameraPhotos(manifest.total_photos, mars, args, _logger)
   ]);
+
  } else {
+  // get mars photos, earth photos and manifest sequentially
+  const marsPhotos = await mars.retrievePhotos(args, _logger);
+
+  // get earth date from API
+  const earthDate = marsPhotos[0].earth_date;
+
+  _logger.debug({
+   filename: __filename,
+   function: arguments.callee.name,
+   msg: 'earth date (FROM API):',
+   earthDate: earthDate
+  });
+
+  const earthPhotos = await earth.retrievePhotos(args, earthDate, _logger);
+  const manifest = await mission.getManifest(args, _logger);
+
   // get sol and camera validations sequentially as a baseline for performance comparison
   validations.sol = validate.compareSolPhotos(marsPhotos, earthPhotos, _logger);
   validations.cameras = await validate.compareCameraPhotos(manifest.total_photos, mars, args, _logger);

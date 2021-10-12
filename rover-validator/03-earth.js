@@ -10,6 +10,8 @@ async function retrievePhotos(args, earthDate, _logger) {
     "&earth_date=" + earthDate;
 
   _logger.debug({
+    filename: __filename,
+    function: arguments.callee.name,
     msg: 'earth URL',
     url: url.replace("?api_key=" + args.apiKey + "&", "?")
   });
@@ -17,6 +19,8 @@ async function retrievePhotos(args, earthDate, _logger) {
   const response = await axios.get(url);
 
   _logger.trace({
+    filename: __filename,
+    function: arguments.callee.name,
     msg: 'earth photos',
     photos: response.data.photos
   });
@@ -51,8 +55,11 @@ function calculateEarthDate(roverName, sol, _logger) {
   const earthDate = new Date(earthLandingDate.getTime() + totalSecsInSol * 1000);
 
   _logger.debug({
-    msg: "I'm in 03-earth/calculateEarthDate",
+    filename: __filename,
+    function: arguments.callee.name,
+    msg: "Got some Mars to Earth calculations",
     roverName: roverName,
+    sol: sol,
     landingKeyPair: landingKeyPair,
     earthLandingDate: earthLandingDate.toISOString(),
     secsElapsedSinceLanding: secsElapsedSinceLanding,

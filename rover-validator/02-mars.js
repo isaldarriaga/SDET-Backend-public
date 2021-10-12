@@ -16,6 +16,8 @@ async function retrievePagedPhotos(args, martianSol, page, limitToArgs, _logger)
     "&sol=" + martianSol;
 
   _logger.debug({
+    filename: __filename,
+    function: arguments.callee.name,
     msg: 'mars URL',
     url: url.replace("?api_key=" + args.apiKey + "&", "?")
   });
@@ -23,6 +25,8 @@ async function retrievePagedPhotos(args, martianSol, page, limitToArgs, _logger)
   const response = await axios.get(url);
 
   _logger.trace({
+    filename: __filename,
+    function: arguments.callee.name,
     msg: 'mars photos',
     photos: response.data.photos,
     martianSol: martianSol,
