@@ -26,24 +26,80 @@ async function compareCameraPhotos(totalPhotos, marsObject, args, _logger) {
  var page = 1;
  const maxPages = Math.ceil(totalPhotos / 25);
 
- // retrieve and iterate all photo pages in the martian sol
- while (page <= maxPages) {
+ if (args.async) {
 
-  var marsPhotos = await marsObject.retrievePagedPhotos(args, args.martianSol, page, false, _logger);
+  // 1. Create an array with all possible page numbers
+  const pages = Array(maxPages).fill().map((v, i) => (i + 1));
 
-  // iterate values with "of"
-  for (const photo of marsPhotos) {
+  _logger.debug({ msg: 'pages array', pages: pages });
 
-   // initialize camera counter
-   if (!counter[photo.camera.name]) {
-    counter[photo.camera.name] = 1;
-   } else {
-    counter[photo.camera.name] = counter[photo.camera.name] + 1;;
+  // 2. retrieve each page of photos and resolve all promises
+  const pageResponses = await Promise.all(
+   pages.map(async (page) => {
+    return await marsObject.retrievePagedPhotos(args, args.martianSol, page, false, _logger);
+   })
+  );
+
+  _logger.debug({ msg: 'page responses', pageResponses: pageResponses });
+
+  // 3. transform each API response into an object that counts the 
+  // number of photos each camera has taken in that day
+  counter = pageResponses.map(function (marsPhotos) {
+   // process each pàge
+   var pageCounter = {};
+   for (const photo of marsPhotos) {
+    // initialize camera pageCounter
+    if (!pageCounter[photo.camera.name]) {
+     pageCounter[photo.camera.name] = 1;
+    } else {
+     pageCounter[photo.camera.name] = pageCounter[photo.camera.name] + 1;
+    }
    }
 
-  }
+   return pageCounter;
 
-  page++;
+  }).reduce(function (prev, cur) {
+
+   // accumulate all page counters
+   var subtotal = {};
+   for (const camera in prev) {
+    // sum previous and current counters if there's a match on cameras
+    subtotal[camera] = prev[camera] + (cur[camera] ? cur[camera] : 0);
+   }
+
+   // make sure non matched cameras have a subtotal too
+   for (const camera in cur) {
+    if (!subtotal[camera]) {
+     subtotal[camera] = cur[camera];
+    }
+   }
+
+   return subtotal;
+
+  });
+
+ } else {
+
+  // SEQUENTIALLY
+  // retrieve and iterate all photo pages in the martian sol 
+  while (page <= maxPages) {
+
+   var marsPhotos = await marsObject.retrievePagedPhotos(args, args.martianSol, page, false, _logger);
+
+   // iterate values with "of"
+   for (const photo of marsPhotos) {
+
+    // initialize camera counter
+    if (!counter[photo.camera.name]) {
+     counter[photo.camera.name] = 1;
+    } else {
+     counter[photo.camera.name] = counter[photo.camera.name] + 1;;
+    }
+
+   }
+
+   page++;
+  }
  }
 
  // validate now

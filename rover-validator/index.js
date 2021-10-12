@@ -5,7 +5,10 @@ const mission = require('./04-mission')
 // testing is included here
 const validate = require('./05-validate')
 
-async function validateImages(_logger) {
+async function validatePhotos(_logger) {
+
+ // measure time start
+ hrStart = process.hrtime();
 
  const args = cli.args(_logger);
 
@@ -25,10 +28,16 @@ async function validateImages(_logger) {
  testResults.sol = validate.compareSolPhotos(marsPhotos, earthPhotos, _logger);
  testResults.cameras = await validate.compareCameraPhotos(manifest.total_photos, mars, args, _logger);
 
+ // measure time end
+ hrEnd = process.hrtime(hrStart);
+
+ testResults.asynchronous = args.async;
+ testResults.timelapse = hrEnd[0].toFixed(1) + 's ' + (hrEnd[1] / 1000000).toFixed(1) + 'ms';
+
  return testResults;
 
 }
 
 module.exports = {
- validateImages: validateImages
+ validatePhotos: validatePhotos
 }

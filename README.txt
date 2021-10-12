@@ -25,6 +25,7 @@ DEBUG_LEVEL=info
 node index.js
 
 if you want to debug the program, 
+
 6. install the program pino-pretty globally to format the output
 7. edit .env file and change debug level:
 DEBUG_LEVEL=debug
@@ -46,6 +47,7 @@ Usage: index [options]
 
 Options:
   -V, --version                output the version number
+  --no-async                   do not query photos concurrently
   -n, --num-photos <num>       number of photos to retrieve (default: 10)
   -s, --martian-sol <num>      martian sol to retrieve photos from (default: 1000)
   -r, --rover-name <name>      rover to test photos from (default: "curiosity")
@@ -55,6 +57,7 @@ Options:
                                "https://api.nasa.gov/mars-photos/api/v1//manifests//%ROVER%")
   -k, --api-key <key>          NASA's API key (default: "Wkoi3f3W1er0acflJVgOfrahOxfBAKlRnTqaq6Us")
   -h, --help                   display help for command
+
 
 ===== testing ===========
 

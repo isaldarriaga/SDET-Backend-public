@@ -9,10 +9,10 @@ async function main() {
   throw _dotenv.error
  }
 
- const validations = await validator.validateImages(_logger);
+ const validations = await validator.validatePhotos(_logger);
 
  _logger.info({
-  msg: 'these are the test results',
+  msg: 'These are the validations',
   validations: validations
  })
 

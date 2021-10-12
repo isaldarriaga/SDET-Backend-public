@@ -28,8 +28,6 @@ async function retrievePagedPhotos(args, martianSol, page, limitToArgs, _logger)
     return response.data.photos;
   }
 
-
-
 }
 
 module.exports = {

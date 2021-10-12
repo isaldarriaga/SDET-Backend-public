@@ -5,6 +5,7 @@ function args(logger) {
 
   // CLI options definition
   program
+    .option('--no-async', 'do not query photos concurrently')
     .option('-n, --num-photos <num>',
       'number of photos to retrieve',
       10)
