@@ -31,7 +31,7 @@ async function compareCameraPhotos(totalPhotos, marsObject, args, _logger) {
   // 1. Create an array with all possible page numbers
   const pages = Array(maxPages).fill().map((v, i) => (i + 1));
 
-  _logger.debug({ msg: 'pages array', pages: pages });
+  _logger.trace({ msg: 'pages array', pages: pages });
 
   // 2. retrieve each page of photos and resolve all promises
   const pageResponses = await Promise.all(
@@ -40,7 +40,7 @@ async function compareCameraPhotos(totalPhotos, marsObject, args, _logger) {
    })
   );
 
-  _logger.debug({ msg: 'page responses', pageResponses: pageResponses });
+  _logger.trace({ msg: 'page responses', pageResponses: pageResponses });
 
   // 3. transform each API response into an object that counts the 
   // number of photos each camera has taken in that day

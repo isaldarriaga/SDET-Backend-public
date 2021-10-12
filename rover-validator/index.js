@@ -2,7 +2,6 @@ const cli = require('./01-cli')
 const mars = require('./02-mars')
 const earth = require('./03-earth')
 const mission = require('./04-mission')
-// testing is included here
 const validate = require('./05-validate')
 
 async function validatePhotos(_logger) {
@@ -12,29 +11,57 @@ async function validatePhotos(_logger) {
 
  const args = cli.args(_logger);
 
- const marsPhotos = await mars.retrievePhotos(args, _logger);
+ var marsPhotos, earthPhotos, manifest, earthDate;
 
- const earthDate = marsPhotos[0].earth_date;
+ if (args.async) {
 
- const earthPhotos = await earth.retrievePhotos(args, earthDate, _logger);
+  // earth's date is needed to be able to get mars and earth photos concurrently
+  earthDate = earth.calculateEarthDate(args.roverName, args.martianSol, _logger);
 
- // manifest says how many photos the rover has in a date
- // we use it to iterate all photos
- // another approach is to check every page to be empty
- const manifest = await mission.getManifest(args, _logger);
+  _logger.debug({ msg: 'earth date (CALCULATED):', earthDate: earthDate });
 
- var testResults = {};
+  [marsPhotos, earthPhotos, manifest] = await Promise.all([
+   await mars.retrievePhotos(args, _logger),
+   await earth.retrievePhotos(args, earthDate, _logger),
+   await mission.getManifest(args, _logger)
+  ]);
 
- testResults.sol = validate.compareSolPhotos(marsPhotos, earthPhotos, _logger);
- testResults.cameras = await validate.compareCameraPhotos(manifest.total_photos, mars, args, _logger);
+ } else {
+  // get mars photos, earth photos and manifest sequentially
+  marsPhotos = await mars.retrievePhotos(args, _logger);
+
+  // get earth date from API
+  earthDate = marsPhotos[0].earth_date;
+
+  _logger.debug({ msg: 'earth date (FROM API):', earthDate: earthDate });
+
+  earthPhotos = await earth.retrievePhotos(args, earthDate, _logger);
+  manifest = await mission.getManifest(args, _logger);
+ }
+
+ var validations = { rover: args.roverName };
+
+
+ if (args.async) {
+  // get sol and camera validations concurrently
+  // because they don't depend on each other
+  [validations.sol, validations.cameras] = await Promise.all([
+   validate.compareSolPhotos(marsPhotos, earthPhotos, _logger),
+   await validate.compareCameraPhotos(manifest.total_photos, mars, args, _logger)
+  ]);
+ } else {
+  // get sol and camera validations sequentially as a baseline for performance comparison
+  validations.sol = validate.compareSolPhotos(marsPhotos, earthPhotos, _logger);
+  validations.cameras = await validate.compareCameraPhotos(manifest.total_photos, mars, args, _logger);
+ }
 
  // measure time end
  hrEnd = process.hrtime(hrStart);
 
- testResults.asynchronous = args.async;
- testResults.timelapse = hrEnd[0].toFixed(1) + 's ' + (hrEnd[1] / 1000000).toFixed(1) + 'ms';
+ validations.asynchronous = args.async;
+ validations.timelapse = hrEnd[0].toFixed(1) + 's ' + (hrEnd[1] / 1000000).toFixed(1) + 'ms';
 
- return testResults;
+ return validations;
 
 }
 

@@ -9,11 +9,20 @@ async function retrievePhotos(args, _logger) {
 
 async function retrievePagedPhotos(args, martianSol, page, limitToArgs, _logger) {
 
-  const url = args.roverApiUrl.replace("%ROVER%", args.roverName) + "sol=" + martianSol + "&page=" + page + "&api_key=" + args.apiKey;
+  const url = args.roverApiUrl
+    .replace("%ROVER%", args.roverName)
+    .replace("%API_KEY%", args.apiKey)
+    .replace("%PAGE%", page) +
+    "&sol=" + martianSol;
+
+  _logger.debug({
+    msg: 'mars URL',
+    url: url.replace("?api_key=" + args.apiKey + "&", "?")
+  });
 
   const response = await axios.get(url);
 
-  _logger.debug({
+  _logger.trace({
     msg: 'mars photos',
     photos: response.data.photos,
     martianSol: martianSol,

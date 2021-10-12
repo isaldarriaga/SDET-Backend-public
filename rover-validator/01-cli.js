@@ -5,7 +5,7 @@ function args(logger) {
 
   // CLI options definition
   program
-    .option('--no-async', 'do not query photos concurrently')
+    .option('--no-async', 'do not query photos concurrently. Use it to take a baseline of performance')
     .option('-n, --num-photos <num>',
       'number of photos to retrieve',
       10)
@@ -16,9 +16,9 @@ function args(logger) {
       'rover to test photos from',
       'curiosity') // defaulted in the code challenge
     .option('-k, --rover-api-url <url>',
-      "NASA's Rover API URL", "https://api.nasa.gov/mars-photos/api/v1/rovers/%ROVER%/photos?")
+      "NASA's Rover API URL", "https://api.nasa.gov/mars-photos/api/v1/rovers/%ROVER%/photos?api_key=%API_KEY%&page=%PAGE%")
     .option('-k, --mission-api-url <url>',
-      "NASA's Rover Mission API URL", "https://api.nasa.gov/mars-photos/api/v1//manifests//%ROVER%")
+      "NASA's Rover Mission API URL", "https://api.nasa.gov/mars-photos/api/v1/manifests/%ROVER%?api_key=%API_KEY%")
     .option('-k, --api-key <key>',
       "NASA's API key", "Wkoi3f3W1er0acflJVgOfrahOxfBAKlRnTqaq6Us");
 
@@ -36,6 +36,16 @@ function args(logger) {
     logger.error({
       msg: 'number of photos should not exceed 25 (1 page of data) on this version of the program',
       numPhotos: args.numPhotos
+    });
+    process.exit(1);
+  }
+
+  const rovers = process.env.ROVERS.split(',');
+
+  if (!rovers.includes(args.roverName)) {
+    logger.error({
+      msg: 'The program only works with the following rovers',
+      rovers: rovers
     });
     process.exit(1);
   }

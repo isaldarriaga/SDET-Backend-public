@@ -3,6 +3,7 @@
     "axios": "^0.22.0",
     "commander": "^8.2.0",
     "dotenv": "^10.0.0",
+    "mars-date-utils": "^1.1.0",
     "pino": "^6.13.3"
   },
   "devDependencies": {
