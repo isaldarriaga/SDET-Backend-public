@@ -1,6 +1,6 @@
 const { program } = require('commander');
 
-function args(logger) {
+function args(_logger) {
   program.version('0.0.1');
 
   // CLI options definition
@@ -29,7 +29,7 @@ function args(logger) {
   // transform strings received as args into numbers
   if (typeof (args.numPhotos) === "string") {
     args.numPhotos = parseInt(args.numPhotos);
-    logger.debug({
+    _logger.debug({
       msg: "numPhotos has been received as argument, did cast to number",
       numPhotos: args.numPhotos
     });
@@ -37,20 +37,20 @@ function args(logger) {
 
   if (typeof (args.martianSol) === "string") {
     args.martianSol = parseInt(args.martianSol);
-    logger.debug({
+    _logger.debug({
       msg: "martianSol has been received as argument, did cast to number",
       martianSol: args.martianSol
     });
   }
 
   // print the CLI arguments received
-  logger.debug({
+  _logger.debug({
     msg: 'arguments received via CLI (or defaulted ones)',
     args: args
   });
 
   if (args.numPhotos > 25) {
-    logger.error({
+    _logger.error({
       msg: 'number of photos should not exceed 25 (1 page of data) on this version of the program',
       numPhotos: args.numPhotos
     });
@@ -60,11 +60,14 @@ function args(logger) {
   const rovers = process.env.ROVERS.split(',');
 
   if (!rovers.includes(args.roverName)) {
-    logger.error({
-      msg: 'The program only works with the following rovers',
+    const error = {
+      filename: __filename,
+      function: arguments.callee.name,
+      msg: 'The program only works with certain rovers',
       rovers: rovers
-    });
-    process.exit(1);
+    };
+    _logger.error(error);
+    throw error;
   }
 
   return args;

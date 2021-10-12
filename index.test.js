@@ -1,42 +1,59 @@
-const _dotenv = require('dotenv').config();
-const _logger = require('pino')({ level: process.env.DEBUG_LEVEL ? process.env.DEBUG_LEVEL : "info" })
-
 jest.setTimeout(60000);
 
-const validator = require('./rover-validator')
-
-const anySolValidation = [
+const solValidationResults = [
  'same',
  'different'
 ];
 
-const anyCameraValidation = [
+const cameraValidationResults = [
  'greater',
  'normal'
 ];
 
-test('the validator compares sol photos (mars vs earth)', async () => {
+// the program under test
+require('dotenv').config();
+const _logger = require('pino')({ level: "info" })
 
- // var validations = await validator.validateImages(_logger);
+describe('The program', () => {
 
- var validations = {
-  "sol": "same",
-  "cameras": {
-   "FHAZ": "normal",
-   "RHAZ": "normal",
-   "MAST": "greater",
-   "CHEMCAM": "normal",
-   "NAVCAM": "normal"
+ const validator = require('./rover-validator')
+ var output, hrStart, hrEnd;
+
+ _logger.debug({
+  msg: 'THE PROGRAM UNDER TEST FINISHED',
+  output: output
+ });
+
+ test("does sol and camera validations", async () => {
+
+  // measure start time
+  hrStart = process.hrtime();
+
+  output = await validator.validatePhotos(_logger);
+
+  // measure end time
+  hrEnd = process.hrtime(hrStart);
+
+  expect(output).toHaveProperty("sol");
+  expect(output).toHaveProperty("cameras");
+
+ });
+
+ test("the sol validation result is one of: " + solValidationResults.join().replace(',', ', '), () => {
+  expect(output.sol).toBeOneOf(solValidationResults);
+ });
+
+ test("the camera validation results are one of: " + cameraValidationResults.join().replace(',', ', '), () => {
+
+  for (var camera in output.cameras) {
+   expect(output.cameras[camera]).toBeOneOf(cameraValidationResults);
   }
- }
 
+ });
 
- // basic program validation
- expect(validations).toHaveProperty("sol");
- expect(validations).toHaveProperty("cameras");
-
- for (var camera in validations.cameras) {
-  expect(validations.cameras[camera]).toBe("normal");
- }
+ test("finishes in less than 5 seconds", () => {
+  expect(hrEnd[0]).toBeLessThan(500);
+ });
 
 });
+

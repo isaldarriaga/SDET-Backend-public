@@ -11,7 +11,13 @@ async function validatePhotos(_logger) {
 
  const args = cli.args(_logger);
 
- var validations = { rover: args.roverName };
+ var validations = {
+  rover: args.roverName,
+  sol: undefined,
+  cameras: undefined,
+  asynchronous: args.async,
+  timelapse: undefined
+ };
 
  if (args.async) {
 
@@ -31,19 +37,14 @@ async function validatePhotos(_logger) {
    await earth.retrievePhotos(args, earthDate, _logger)
   ]);
 
-  console.log('manifest', manifest);
-
-  // process.exit(0);
-
   _logger.trace({
    filename: __filename,
    function: arguments.callee.name,
-   msg: "GOT marsPhotos, earthPhotos, manifest",
-   manifest: JSON.stringify(manifest)
-   // marsPhotos: marsPhotos,
-   // earthPhotos: earthPhotos,
+   msg: "GOT all API results",
+   manifest: manifest,
+   marsPhotos: marsPhotos,
+   earthPhotos: earthPhotos,
   });
-
 
   // get sol and camera validations concurrently
   // because they don't depend on each other
